@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <!-- 모바일 화면 대응: 기기 너비에 맞게 뷰포트 설정 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- SEO: 검색 엔진이 이 페이지를 이해하도록 설명 추가 -->
+  <meta name="description" content="생년월일을 입력하면 오늘 기준 나이(연, 월, 일)를 즉시 계산해 주는 나이 계산기입니다.">
+
+  <!-- 외부 스타일시트 연결 -->
+  <link rel="stylesheet" href="./style.css">
+
+  <title>Age Calculator App</title>
+</head>
+
+<body>
+
+  <!-- ===== 페이지 전체 최상위 영역 ===== -->
+  <main class="page-wrapper" role="main">
+
+    <!-- 카드 컨테이너: 흰색 둥근 카드 박스 -->
+    <article class="card" aria-label="나이 계산기">
+
+      <!-- ===== 입력 폼 영역 ===== -->
+      <form class="form" id="age-form" novalidate aria-label="생년월일 입력 폼">
+        <!-- 입력 필드 3개를 가로로 나열하는 그룹 -->
+        <div class="input-group">
+
+          <!-- [일(DAY) 입력] -->
+          <div class="input-field" id="field-day">
+            <!--
+              label: 입력칸이 무엇을 받는지 설명하는 꼬리표
+              for="input-day": id="input-day"인 input과 연결됨
+            -->
+            <label class="input-label" for="input-day" id="label-day">Day</label>
+            <input class="input" type="number" id="input-day" name="day" placeholder="DD" min="1" max="31"
+              aria-labelledby="label-day" aria-describedby="error-day" aria-invalid="false" autocomplete="off">
+            <!-- 에러 메시지 영역: aria-live="polite" = 스크린 리더가 변경 시 즉시 읽어줌 -->
+            <span class="error-message" id="error-day" role="alert" aria-live="polite"></span>
+          </div>
+
+          <!-- [월(MONTH) 입력] -->
+          <div class="input-field" id="field-month">
+            <label class="input-label" for="input-month" id="label-month">Month</label>
+            <input class="input" type="number" id="input-month" name="month" placeholder="MM" min="1" max="12"
+              aria-labelledby="label-month" aria-describedby="error-month" aria-invalid="false" autocomplete="off">
+            <span class="error-message" id="error-month" role="alert" aria-live="polite"></span>
+          </div>
+
+          <!-- [연도(YEAR) 입력] -->
+          <div class="input-field" id="field-year">
+            <label class="input-label" for="input-year" id="label-year">Year</label>
+            <input class="input" type="number" id="input-year" name="year" placeholder="YYYY" min="1" max="9999"
+              aria-labelledby="label-year" aria-describedby="error-year" aria-invalid="false" autocomplete="off">
+            <span class="error-message" id="error-year" role="alert" aria-live="polite"></span>
+          </div>
+        </div><!-- /.input-group -->
+
+        <!-- ===== 구분선 + 제출 버튼 영역 =====
+          구분선을 기준으로 버튼이 "걸쳐 있는" 효과를 위해 별도 래퍼 사용
+        -->
+        <div class="divider-wrapper">
+          <!-- 가로 구분선 -->
+          <hr class="divider" aria-hidden="true">
+
+          <!-- 제출 버튼: 보라색 원형, 화살표 아이콘 포함 -->
+          <button class="submit-btn" type="submit" id="submit-btn" aria-label="나이 계산하기">
+            <!-- SVG 화살표 아이콘 -->
+            <img src="./assets/images/icon-arrow.svg" alt="" aria-hidden="true" class="arrow-icon">
+          </button>
+        </div><!-- /.divider-wrapper -->
+      </form><!-- /#age-form -->
+
+      <!-- ===== 결과 출력 영역 =====
+        aria-live="polite": 계산 결과가 바뀌면 스크린 리더가 알려줌
+      -->
+      <section class="results" aria-label="나이 계산 결과" aria-live="polite">
+        <!-- 연 결과 -->
+        <p class="result-line">
+          <!-- span.result-number: JS에서 숫자를 여기에 넣음 -->
+          <span class="result-number" id="result-years">--</span>
+          <span class="result-label">years</span>
+        </p>
+
+        <!-- 월 결과 -->
+        <p class="result-line">
+          <span class="result-number" id="result-months">--</span>
+          <span class="result-label">months</span>
+        </p>
+
+        <!-- 일 결과 -->
+        <p class="result-line">
+          <span class="result-number" id="result-days">--</span>
+          <span class="result-label">days</span>
+        </p>
+      </section><!-- /.results -->
+
+    </article><!-- /.card -->
+
+  </main><!-- /.page-wrapper -->
+
+  <!-- JavaScript 파일 연결: defer = HTML 파싱 끝난 후 실행 -->
+  <script src="./script.js" defer></script>
+</body>
+
+</html>

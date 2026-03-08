@@ -1,0 +1,587 @@
+/* ================================================================
+   style.css — Age Calculator App 전체 스타일시트
+   작성자: Frontend Mentor Challenge
+
+   [목차 (TOC)]
+   1. @font-face     — 로컬 폰트 등록
+   2. :root          — 디자인 토큰 (Color, Typography, Spacing, Component)
+   3. Reset          — 브라우저 기본 스타일 정규화
+   4. Layout         — 페이지 및 카드 컨테이너 구조
+   5. Form           — 입력 필드, 라벨, 에러 메시지 컴포넌트
+   6. Divider/Button — 구분선 및 제출 버튼 컴포넌트
+   7. Results        — 결과 출력 영역 컴포넌트
+   8. Error State    — .has-error 기반 에러 상태 스타일
+   9. Media: 768px+  — 태블릿 반응형
+   10. Media: 1024px+ — 데스크톱 반응형
+
+   [컴포넌트 네이밍 전략]
+   Block-Element 패턴을 느슨하게 적용합니다.
+   - .card > .form > .input-group > .input-field > .input / .input-label / .error-message
+   - .card > .results > .result-line > .result-number / .result-label
+   클래스 이름만으로 HTML 계층 구조를 유추할 수 있도록 설계했습니다.
+================================================================ */
+
+
+/* ================================================================
+   1. @font-face — 로컬 폰트 등록
+   CDN 대신 로컬 파일을 사용하는 이유:
+     - 외부 네트워크 의존성 없이 폰트를 안정적으로 제공합니다.
+     - 개인정보 보호 규정(GDPR 등)에서 Google Fonts 같은 외부 서버에
+       사용자 IP가 노출되는 문제를 원천 차단합니다.
+   font-display: swap 설정 이유:
+     - 폰트 로드 전까지 시스템 기본 폰트로 먼저 텍스트를 렌더링합니다.
+     - FOIT(Flash of Invisible Text) 대신 FOUT(Flash of Unstyled Text)를
+       허용하여 사용자가 내용을 즉시 읽을 수 있게 합니다. (Core Web Vitals 개선)
+================================================================ */
+@font-face {
+  font-family: 'Poppins';
+  src: url('./assets/fonts/Poppins-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('./assets/fonts/Poppins-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('./assets/fonts/Poppins-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('./assets/fonts/Poppins-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('./assets/fonts/Poppins-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('./assets/fonts/Poppins-ExtraBoldItalic.ttf') format('truetype');
+  font-weight: 800;
+  font-style: italic;
+  /* 결과 숫자(years, months, days) 렌더링에 사용 */
+  font-display: swap;
+}
+
+
+/* ================================================================
+   2. :root — 디자인 토큰
+   CSS 커스텀 프로퍼티를 사용하는 이유:
+     - 단일 소스에서 전체 테마를 관리하여 디자인 일관성을 보장합니다.
+     - JavaScript에서 getComputedStyle()로 접근 가능하고, 런타임에 동적 변경이 가능합니다.
+     - 하드코딩된 값을 의미론적인 이름으로 추상화하여 코드 가독성을 높입니다.
+================================================================ */
+:root {
+  /* --- 색상 팔레트 (Style-guide 기준) --- */
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+  --color-grey-100: #F0F0F0;
+  /* 페이지 배경 */
+  --color-grey-200: #DCDCDC;
+  /* 입력칸 테두리, 구분선 기본 색상 */
+  --color-grey-500: #716F6F;
+  /* 라벨, 보조 텍스트 */
+  --color-red-400: #FF5959;
+  /* 에러 상태 전용 색상 */
+  --color-purple-500: #854DFF;
+  /* 브랜드 주요 색상: 버튼, 포커스, 결과 숫자 */
+
+  /* --- 타이포그래피 --- */
+  --font-family: 'Poppins', sans-serif;
+
+  /* --- 간격 시스템 (8px 베이스 그리드) ---
+     8의 배수로 구성하면 다양한 해상도에서 픽셀이 정수로 나뉘어
+     서브픽셀 렌더링 문제가 최소화됩니다. */
+  --spacing-100: 8px;
+  --spacing-200: 16px;
+  --spacing-300: 24px;
+  --spacing-400: 32px;
+  --spacing-600: 48px;
+  --spacing-700: 56px;
+
+  /* --- 디자인 스펙에서 추출한 컴포넌트 전용 간격 (브레이크포인트별) ---
+     이 값들은 8px 그리드를 벗어나는 정밀 수치입니다.
+     디자인 도구(Figma 등)에서 측정한 값을 변수로 관리하여
+     수치가 여러 파일에 하드코딩되는 것을 방지합니다. */
+  --divider-margin-mobile: 63.5px;
+  --divider-margin-tablet: 80px;
+  --divider-margin-desktop: 47.5px;
+  --results-padding-mobile: 64px;
+  --results-padding-tablet: 79.5px;
+  --results-padding-desktop: 47.5px;
+
+  /* --- 컴포넌트 토큰 --- */
+  --border-radius-card: 24px;
+  --border-radius-input: 8px;
+  --btn-size-mobile: 64px;
+  /* 모바일 버튼: WCAG 최소 터치 타깃(44px)을 준수 */
+  --btn-size-tablet: 96px;
+  /* 태블릿에서 시각적 존재감 강화를 위해 확대 */
+}
+
+
+/* ================================================================
+   3. Reset — 브라우저 기본 스타일 정규화
+   전체 선택자(*)에 box-sizing: border-box를 적용하는 이유:
+     - 기본값인 content-box는 width에 padding/border가 포함되지 않아
+       레이아웃 계산이 직관적이지 않습니다.
+     - border-box로 변경하면 width: 100%가 부모를 넘치지 않아 반응형 구현이 단순해집니다.
+================================================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  /* rem 단위의 기준점. 브라우저 기본값과 동일하게 설정하여 사용자 폰트 설정을 존중 */
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-grey-100);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-200);
+}
+
+/* 스피너(수량 증감 버튼) 제거
+   number 타입 input의 브라우저 기본 스피너는 이 디자인에서 불필요하며
+   레이아웃을 해칩니다. Webkit(Chrome, Safari)과 Firefox 각각 다른 방식으로 제거해야 합니다.
+   appearance: none (표준)을 함께 선언하여 크로스 브라우저 호환성을 확보합니다. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  /* Safari/Chrome: Webkit 전용 스피너 제거 */
+  appearance: none;
+  /* 표준 속성: 향후 Webkit 접두사 없이도 동작하도록 준비 */
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  /* Firefox: number 타입을 일반 text처럼 렌더링하여 스피너 숨김 */
+  appearance: textfield;
+}
+
+
+/* ================================================================
+   4. Layout — 페이지 및 카드 컨테이너
+================================================================ */
+
+/* .page-wrapper: Flexbox 중앙정렬 컨텍스트를 형성하는 최상위 wrapper */
+.page-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* .card: 주요 UI 영역을 감싸는 컨테이너
+   border-radius 4개 값 중 세 번째(오른쪽 하단)만 크게 설정하여
+   디자인 고유의 비대칭 둥근 모서리를 구현합니다.
+   모바일(100px) → 태블릿+(200px)으로 확대되어 화면이 넓을수록 더 두드러집니다. */
+.card {
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-card) var(--border-radius-card) 100px var(--border-radius-card);
+  padding: var(--spacing-600) var(--spacing-300);
+  width: 100%;
+  max-width: 840px;
+}
+
+
+/* ================================================================
+   5. Form — 입력 폼 컴포넌트
+   컴포넌트 계층: .form > .input-group > .input-field > (.input-label + .input + .error-message)
+================================================================ */
+
+.form {
+  width: 100%;
+}
+
+/* .input-group: 3개 필드를 수평으로 배열하는 Flexbox 컨테이너 */
+.input-group {
+  display: flex;
+  gap: var(--spacing-200);
+  margin-bottom: 0;
+}
+
+/* .input-field: 라벨, 입력칸, 에러 메시지를 수직으로 쌓는 단위
+   flex: 1로 설정하여 3개 필드가 가용 공간을 균등하게 분배합니다.
+   min-width: 0은 Flex 아이템의 기본 최소 너비(auto)를 0으로 재정의하여
+   텍스트 오버플로우 시 부모를 벗어나는 동작을 방지하는 필수 핵이 (hack)입니다. */
+.input-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-100);
+  flex: 1;
+  min-width: 0;
+}
+
+/* .input-label — 모바일 기본값: Text Preset 6 (Bold)
+   transition: color을 적용하여 .has-error 클래스 추가 시
+   색상 변경이 즉각적이지 않고 부드럽게 전환됩니다. */
+.input-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--color-grey-500);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+/* .input — 모바일 기본값: Text Preset 4
+   outline 대신 border를 사용하는 이유: outline은 레이아웃에 영향을 주지 않아
+   테두리 색상 변경 시 주변 요소가 밀리지 않습니다.
+   단, focus 스타일은 outline으로 처리하여 브라우저 기본 포커스 링을 대체합니다. */
+.input {
+  font-family: var(--font-family);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-black);
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-grey-200);
+  border-radius: var(--border-radius-input);
+  padding: 12px 16px;
+  width: 100%;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    outline-color 0.2s ease;
+}
+
+/* Placeholder: rgba 투명도 적용으로 실제 입력값(불투명 검정)과 시각적으로 구분됩니다.
+   color: var(--color-grey-*) 대신 rgba(0,0,0,0.5)를 사용하는 이유:
+   배경색이 바뀌어도 상대적인 투명도가 유지되어 다크 모드 등 테마 전환에 강건합니다. */
+.input::placeholder {
+  color: rgba(0, 0, 0, 0.5);
+  font-weight: 700;
+}
+
+/* 포커스 상태: 보라색 테두리로 현재 활성 필드를 명확하게 표시합니다.
+   outline-offset: 0으로 설정하여 outline이 border와 완전히 겹쳐 보이게 하고,
+   border와 outline을 동시에 보라색으로 변경하여 일관된 시각 효과를 줍니다.
+   WCAG 2.1 성공 기준 2.4.11(포커스 표시)을 충족합니다. */
+.input:focus {
+  outline: 1.5px solid var(--color-purple-500);
+  outline-offset: 0;
+  border-color: var(--color-purple-500);
+}
+
+/* .error-message — 모바일 기본값: Text Preset 6 (Italic)
+   min-height를 고정하는 이유: 에러 메시지가 나타나고 사라질 때
+   레이아웃이 흔들리는(Layout Shift) 현상을 방지합니다.
+   빈 문자열 상태에서도 높이를 유지하여 CLS(Cumulative Layout Shift)를 최소화합니다. */
+.error-message {
+  font-size: 12px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--color-red-400);
+  min-height: 14px;
+  display: block;
+}
+
+
+/* ================================================================
+   6. Divider/Button 컴포넌트
+   구분선 위에 버튼이 "걸쳐있는" 효과 구현 원리:
+     .divider-wrapper에 position: relative를 부여하여
+     자식인 .submit-btn의 절대 좌표 기준점을 이 요소로 지정합니다.
+     버튼의 top: 50%는 구분선의 수직 중앙을 가리키고,
+     translateY(-50%)로 버튼 자신의 절반 높이만큼 위로 이동시켜
+     구분선에 균등하게 걸친 시각 효과를 만듭니다.
+================================================================ */
+
+.divider-wrapper {
+  position: relative;
+  margin-top: var(--divider-margin-mobile);
+  margin-bottom: 0;
+}
+
+.divider {
+  border: none;
+  border-top: 1.5px solid var(--color-grey-200);
+  width: 100%;
+}
+
+/* .submit-btn — 모바일: 구분선 수평 정중앙 배치
+   transition: background-color만 지정하는 이유:
+   transform, opacity 등의 다른 속성에 불필요한 전환 비용이 발생하지 않도록
+   애니메이션 대상을 최소화하여 컴포지터 스레드(Compositor Thread) 최적화를 추구합니다. */
+.submit-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%) translateY(-50%);
+
+  width: var(--btn-size-mobile);
+  height: var(--btn-size-mobile);
+  border-radius: 50%;
+  border: none;
+  background-color: var(--color-purple-500);
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: background-color 0.25s ease;
+}
+
+/* 포커스 스타일: :focus-visible을 사용하는 이유:
+   :focus는 마우스 클릭 시에도 포커스 링을 표시하여 시각적으로 어색합니다.
+   :focus-visible은 키보드 탐색 시에만 포커스 링을 표시하여
+   마우스 사용자와 키보드/스크린 리더 사용자 모두에게 최적의 경험을 제공합니다. */
+.submit-btn:focus-visible {
+  outline: 3px solid var(--color-black);
+  outline-offset: 2px;
+}
+
+.arrow-icon {
+  width: 28px;
+  /* 모바일 기본 크기 */
+  height: auto;
+}
+
+
+/* ================================================================
+   7. Results — 결과 출력 컴포넌트
+   컴포넌트 계층: .results > .result-line > (.result-number + .result-label)
+================================================================ */
+
+.results {
+  padding-top: var(--results-padding-mobile);
+  padding-bottom: 0;
+}
+
+/* .result-line: align-items: baseline 정렬을 사용하는 이유:
+   숫자(104px)와 텍스트(104px)의 폰트 크기가 같더라도 baseline 정렬이
+   center보다 더 자연스러운 시각적 균형을 만들어, 서로 다른 폰트 크기일 때도 안정적입니다. */
+.result-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3em;
+  line-height: 1.1;
+  margin-bottom: 0;
+}
+
+/* .result-number와 .result-number.empty를 하나의 선택자로 통합한 이유:
+   두 상태(초기 '--' / 결과 숫자)는 color: var(--color-purple-500)을 공유하며
+   폰트 속성도 동일합니다. empty 클래스가 추가되거나 제거되어도 시각 차이가 없으므로
+   중복 선언 없이 단일 규칙셋으로 관리합니다. */
+.result-number,
+.result-number.empty {
+  font-size: 56px;
+  /* 모바일 기본: Text Preset 2 */
+  font-weight: 800;
+  font-style: italic;
+  line-height: 1.1;
+  letter-spacing: -2px;
+  color: var(--color-purple-500);
+  display: inline-block;
+}
+
+.result-label {
+  font-size: 56px;
+  /* 모바일 기본: Text Preset 2, .result-number와 동일 크기 유지 */
+  font-weight: 800;
+  font-style: italic;
+  line-height: 1.1;
+  letter-spacing: -2px;
+  color: var(--color-black);
+}
+
+
+/* ================================================================
+   8. Error State — .has-error 기반 상태 변화
+   JavaScript에서 .input-field에 .has-error 클래스를 추가하면
+   하위 컴포넌트(라벨, 입력칸)의 색상이 일괄 변경됩니다.
+   이 패턴의 장점:
+     - 단일 클래스 토글로 여러 자식 요소의 스타일을 동시에 제어합니다.
+     - JS와 CSS 간의 결합도(Coupling)를 낮춰 스타일 변경이 JS에 영향을 주지 않습니다.
+================================================================ */
+
+.input-field.has-error .input-label {
+  color: var(--color-red-400);
+}
+
+.input-field.has-error .input {
+  border-color: var(--color-red-400);
+}
+
+/* 에러 상태에서도 포커스 시 보라색으로 재정의하는 이유:
+   has-error + focus 조합에서 보라색이 빨간색보다 명시도가 높아야
+   "현재 수정 중" 상태가 에러 상태보다 우선하여 표시됩니다.
+   이 규칙이 없으면 에러 상태에서 포커스해도 테두리가 빨간색으로 유지됩니다. */
+.input-field.has-error .input:focus {
+  border-color: var(--color-purple-500);
+  outline-color: var(--color-purple-500);
+}
+
+
+/* ================================================================
+   9. 반응형 — 태블릿 (768px 이상)
+   Mobile-First 전략에 따라 기본 스타일은 모바일을 기준으로 작성하고,
+   min-width 미디어 쿼리로 점진적 강화(Progressive Enhancement)합니다.
+
+   이 브레이크포인트에서 주요 변경사항:
+     - 카드 패딩 확대 및 우측 하단 모서리 더 크게 확대 (200px)
+     - 폰트 크기 업스케일 (Text Preset 6 → 5, Preset 4 → 3, Preset 2 → 1)
+     - 버튼 크기 64px → 96px
+     - divider-wrapper 및 results 여백 확대
+================================================================ */
+@media (min-width: 768px) {
+
+  body {
+    /* 태블릿에서 카드 좌우에 고정 여백을 주어 화면 가장자리에 붙지 않도록 합니다.
+       모바일의 padding: var(--spacing-200)를 오버라이드합니다. */
+    padding-left: 41px;
+    padding-right: 41px;
+  }
+
+  .card {
+    padding: 56px;
+    /* 우측 하단 비대칭 모서리 확대: 더 넓은 화면에서 디자인 개성을 강조 */
+    border-bottom-right-radius: 200px;
+  }
+
+  /* Text Preset 5 (Bold): letter-spacing이 4px → 5px로 증가하여 가독성이 향상됩니다.
+     font-weight: 700은 모바일과 동일하므로 재선언하지 않았습니다. (CSS Cascade 활용) */
+  .input-label {
+    font-size: 14px;
+    letter-spacing: 5px;
+    line-height: 1.5;
+  }
+
+  /* Text Preset 3: 폰트 크기를 32px로 확대하고 height를 고정합니다.
+     padding을 상하 0으로 설정한 이유: height가 고정되면 상하 padding이 높이에 포함되어
+     (box-sizing: border-box) 텍스트가 수직 중앙에 오지 않을 수 있습니다.
+     상하 padding을 제거하고 브라우저의 기본 수직 정렬을 따르는 것이 더 안정적입니다. */
+  .input {
+    font-size: 32px;
+    line-height: 1.5;
+    height: 64px;
+    padding: 0 0 0 24px;
+  }
+
+  .input-group {
+    gap: 32px;
+    max-width: 100%;
+  }
+
+  .submit-btn {
+    width: var(--btn-size-tablet);
+    height: var(--btn-size-tablet);
+  }
+
+  .arrow-icon {
+    width: 44px;
+    /* 버튼 크기에 비례하여 확대 (64px 기준 28px → 96px 기준 44px) */
+  }
+
+  /* Text Preset 5 (Italic): 에러 메시지 폰트 크기를 12px → 14px로 확대합니다.
+     font-style: italic은 모바일과 동일하므로 재선언하지 않았습니다. */
+  .error-message {
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: 0;
+  }
+
+  .divider-wrapper {
+    margin-top: var(--divider-margin-tablet);
+  }
+
+  .results {
+    padding-top: var(--results-padding-tablet);
+  }
+
+  /* Text Preset 1 (104px): 결과 숫자와 라벨을 동시에 업스케일합니다.
+     세 선택자를 그룹화하여 중복 규칙셋을 방지합니다. */
+  .result-number,
+  .result-number.empty,
+  .result-label {
+    font-size: 104px;
+    line-height: 1.1;
+    letter-spacing: -2px;
+  }
+}
+
+
+/* ================================================================
+   10. 반응형 — 데스크톱 (1024px 이상)
+   이 브레이크포인트에서 주요 변경사항:
+     - 버튼 위치: 수평 중앙 → 우측 끝
+     - input-group max-width: 75% (버튼이 우측을 차지하므로 공간 확보)
+     - 입력 필드 font/height/padding: 태블릿(768px+)에서 설정한 값이 Cascade로 유효하므로 재선언 없음
+     - Hover 효과 활성화 (터치 기기에서의 고착(stuck hover) 문제 방지)
+================================================================ */
+@media (min-width: 1024px) {
+
+  .card {
+    padding: var(--spacing-700);
+    /* border-bottom-right-radius: 태블릿에서 설정한 200px가 Cascade로 유효하므로 재선언 불필요 */
+  }
+
+  .input-group {
+    gap: var(--spacing-300);
+    /* 24px */
+    /* 버튼이 우측에 배치되므로, 입력 그룹 너비를 75%로 제한하여 버튼 공간을 확보합니다.
+       100%로 설정하면 버튼이 입력 필드를 덮거나 카드를 벗어납니다. */
+    max-width: 75%;
+  }
+
+  /* 버튼 위치 전환: 모바일의 수평 중앙 배치를 해제하고 우측 끝으로 이동합니다.
+     - left: auto — 기존의 left: 50% 초기화
+     - right: 0  — .divider-wrapper(position: relative) 기준 우측 끝에 붙임
+     - transform: translateY(-50%) — 수평 이동(translateX)을 제거하고 수직 걸침만 유지 */
+  .submit-btn {
+    left: auto;
+    right: 0;
+    transform: translateY(-50%);
+  }
+
+  .divider-wrapper {
+    margin-top: var(--divider-margin-desktop);
+  }
+
+  .results {
+    padding-top: var(--results-padding-desktop);
+    padding-bottom: 0;
+  }
+
+  /* Hover 효과를 데스크톱 전용으로 제한하는 이유:
+     모바일/태블릿에서 :hover 상태는 탭(tap) 후 손가락을 떼어도 해제되지 않고
+     "고착(stuck hover)" 상태가 됩니다. (iOS, Android 공통 이슈)
+     min-width: 1024px 조건 내부로 이동함으로써 마우스가 있는 데스크톱 환경에서만
+     hover 피드백을 제공하고, 터치 기기의 UI 혼란을 방지합니다. */
+  .submit-btn:hover {
+    background-color: var(--color-black);
+  }
+}
